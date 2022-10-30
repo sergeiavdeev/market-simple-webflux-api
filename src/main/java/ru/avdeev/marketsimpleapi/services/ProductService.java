@@ -6,6 +6,7 @@ import org.springframework.data.relational.core.query.Criteria;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
+import ru.avdeev.marketsimpleapi.dto.ProductPageResponse;
 import ru.avdeev.marketsimpleapi.entities.Product;
 import ru.avdeev.marketsimpleapi.exceptions.EntityNotFondException;
 import ru.avdeev.marketsimpleapi.exceptions.InsertWithIdException;
@@ -22,7 +23,7 @@ public class ProductService {
     ProductRepository repository;
     FilteredProductRepository filteredRepository;
 
-    public Mono<Page<Product>> getPage(Optional<String> page, Optional<String> size, Optional<String> title, Optional<String> minPrice, Optional<String> maxPrice, Optional<String> sort) {
+    public Mono<ProductPageResponse<Product>> getPage(Optional<String> page, Optional<String> size, Optional<String> title, Optional<String> minPrice, Optional<String> maxPrice, Optional<String> sort) {
 
         int pageNum = Integer.parseInt(page.orElse("1"));
         int pageSize = Integer.parseInt(size.orElse("5"));
