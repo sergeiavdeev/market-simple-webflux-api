@@ -12,7 +12,7 @@
 	<artifactId>market-simple-api</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>market-simple-api</name>
-	<description>API for Marke-simple reactive</description>
+	<description>API for Market-simple reactive</description>
 	<properties>
 		<java.version>11</java.version>
 	</properties>
