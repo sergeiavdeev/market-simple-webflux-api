@@ -11,6 +11,9 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.BodyInserters;
 import ru.avdeev.marketsimpleapi.dto.ProductPageResponse;
 import ru.avdeev.marketsimpleapi.entities.Product;
+
+import java.math.BigDecimal;
+
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 
@@ -32,7 +35,7 @@ public class ProductControllerTest {
 
         createdProduct = new Product();
         createdProduct.setTitle("Тест");
-        createdProduct.setPrice(600d);
+        createdProduct.setPrice(BigDecimal.valueOf(600));
 
         client.post().uri(apiUrl)
                 .body(BodyInserters.fromValue(createdProduct))
@@ -71,13 +74,13 @@ public class ProductControllerTest {
     @Order(5)
     public void testUpdate() {
 
-        createdProduct.setPrice(700d);
+        createdProduct.setPrice(BigDecimal.valueOf(700));
         client.put().uri(apiUrl)
                 .body(BodyInserters.fromValue(createdProduct))
                 .exchange()
                 .expectStatus().isOk()
                 .expectBody(Product.class).value(product -> assertThat(product.getPrice())
-                        .isEqualTo(700d));
+                        .isEqualTo(BigDecimal.valueOf(700)));
     }
 
     @Test

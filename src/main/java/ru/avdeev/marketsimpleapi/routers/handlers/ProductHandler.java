@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
+import ru.avdeev.marketsimpleapi.dto.ProductCreateRequest;
 import ru.avdeev.marketsimpleapi.dto.ProductPageResponse;
 import ru.avdeev.marketsimpleapi.entities.Product;
 import ru.avdeev.marketsimpleapi.services.ProductService;
@@ -38,7 +39,7 @@ public class ProductHandler {
     }
 
     public Mono<ServerResponse> add(ServerRequest request) {
-        return request.bodyToMono(Product.class)
+        return request.bodyToMono(ProductCreateRequest.class)
                 .flatMap(product -> service.add(product))
                 .flatMap(product -> ServerResponse.ok().bodyValue(product));
     }

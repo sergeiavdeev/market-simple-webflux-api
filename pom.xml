@@ -45,9 +45,14 @@
 			<optional>true</optional>
 		</dependency>
 		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
+			<groupId>org.mapstruct</groupId>
+			<artifactId>mapstruct</artifactId>
+			<version>1.5.3.Final</version>
+		</dependency>
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok-mapstruct-binding</artifactId>
+			<version>0.2.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springdoc</groupId>
@@ -60,13 +65,48 @@
 			<version>1.6.12</version>
 		</dependency>
 		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>io.projectreactor</groupId>
 			<artifactId>reactor-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
 
 	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>3.8.1</version>
+					<configuration>
+						<source>${java.version}</source>
+						<target>${java.version}</target>
+						<encoding>${project.build.sourceEncoding}</encoding>
+						<annotationProcessorPaths>
+							<path>
+								<groupId>org.projectlombok</groupId> <!-- IMPORTANT - LOMBOK BEFORE MAPSTRUCT -->
+								<artifactId>lombok</artifactId>
+								<version>${lombok.version}</version>
+							</path>
+							<path>
+								<groupId>org.mapstruct</groupId>
+								<artifactId>mapstruct-processor</artifactId>
+								<version>1.5.3.Final</version>
+							</path>
+						</annotationProcessorPaths>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
@@ -80,6 +120,21 @@
 						</exclude>
 					</excludes>
 				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>build-info</goal>
+						</goals>
+						<configuration>
+							<additionalProperties>
+								<encoding.source>UTF-8</encoding.source>
+								<encoding.reporting>UTF-8</encoding.reporting>
+								<java.source>${maven.compiler.source}</java.source>
+								<java.target>${maven.compiler.target}</java.target>
+							</additionalProperties>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

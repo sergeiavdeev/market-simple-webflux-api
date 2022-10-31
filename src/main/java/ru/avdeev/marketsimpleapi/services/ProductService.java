@@ -6,10 +6,11 @@ import org.springframework.data.relational.core.query.Criteria;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
+import ru.avdeev.marketsimpleapi.dto.ProductCreateRequest;
 import ru.avdeev.marketsimpleapi.dto.ProductPageResponse;
 import ru.avdeev.marketsimpleapi.entities.Product;
 import ru.avdeev.marketsimpleapi.exceptions.EntityNotFondException;
-import ru.avdeev.marketsimpleapi.exceptions.InsertWithIdException;
+import ru.avdeev.marketsimpleapi.mappers.ProductMapper;
 import ru.avdeev.marketsimpleapi.repository.FilteredProductRepository;
 import ru.avdeev.marketsimpleapi.repository.ProductRepository;
 
@@ -22,6 +23,7 @@ public class ProductService {
 
     ProductRepository repository;
     FilteredProductRepository filteredRepository;
+    ProductMapper mapper;
 
     public Mono<ProductPageResponse<Product>> getPage(Optional<String> page, Optional<String> size, Optional<String> title, Optional<String> minPrice, Optional<String> maxPrice, Optional<String> sort) {
 
@@ -48,11 +50,11 @@ public class ProductService {
                 .flatMap(existProduct -> repository.save(product));
     }
 
-    public Mono<Product> add(Product product) {
-        if (product.getId() != null) {
-            return Mono.error(new InsertWithIdException());
-        }
-        return repository.save(product);
+    public Mono<Product> add(ProductCreateRequest productCreateRequest) {
+
+        return Mono.just(productCreateRequest)
+                .map(mapper::mapToProduct)
+                .flatMap(product -> repository.save(product));
     }
 
     public Mono<Void> delete(UUID id) {
@@ -60,9 +62,12 @@ public class ProductService {
     }
 
     @Autowired
-    public void init(ProductRepository repository, FilteredProductRepository filteredRepository) {
+    public void init(ProductRepository repository,
+                     FilteredProductRepository filteredRepository,
+                     ProductMapper m) {
         this.repository = repository;
         this.filteredRepository = filteredRepository;
+        mapper = m;
     }
 
     private Sort createSortFromString(String sortString) {

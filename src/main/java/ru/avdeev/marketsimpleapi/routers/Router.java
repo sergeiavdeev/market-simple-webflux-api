@@ -18,6 +18,7 @@ import org.springframework.web.reactive.config.EnableWebFlux;
 import org.springframework.web.reactive.config.WebFluxConfigurer;
 import org.springframework.web.reactive.function.server.*;
 import org.springframework.web.server.ServerWebInputException;
+import ru.avdeev.marketsimpleapi.dto.ProductCreateRequest;
 import ru.avdeev.marketsimpleapi.dto.ProductPageResponse;
 import ru.avdeev.marketsimpleapi.entities.Product;
 import ru.avdeev.marketsimpleapi.exceptions.ApiException;
@@ -26,6 +27,7 @@ import ru.avdeev.marketsimpleapi.routers.handlers.HelloHandler;
 import ru.avdeev.marketsimpleapi.routers.handlers.ProductHandler;
 import ru.avdeev.marketsimpleapi.services.ProductService;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
@@ -52,8 +54,8 @@ public class Router implements WebFluxConfigurer {
                                     @Parameter(in = ParameterIn.QUERY, name = "page", schema = @Schema(implementation = Integer.class)),
                                     @Parameter(in = ParameterIn.QUERY, name = "size", schema = @Schema(implementation = Integer.class)),
                                     @Parameter(in = ParameterIn.QUERY, name = "title"),
-                                    @Parameter(in = ParameterIn.QUERY, name = "minPrice", schema = @Schema(implementation = Double.class)),
-                                    @Parameter(in = ParameterIn.QUERY, name = "maxPrice", schema = @Schema(implementation = Double.class))
+                                    @Parameter(in = ParameterIn.QUERY, name = "minPrice", schema = @Schema(implementation = BigDecimal.class)),
+                                    @Parameter(in = ParameterIn.QUERY, name = "maxPrice", schema = @Schema(implementation = BigDecimal.class))
                             }
                     )
             ),
@@ -90,7 +92,7 @@ public class Router implements WebFluxConfigurer {
                                             content = @Content(schema = @Schema(implementation = ErrorResponse.class))
                                     )
                             },
-                            requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = Product.class)))
+                            requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = ProductCreateRequest.class)))
                     )
             ),
             @RouterOperation(path = "/api/v1/product",
