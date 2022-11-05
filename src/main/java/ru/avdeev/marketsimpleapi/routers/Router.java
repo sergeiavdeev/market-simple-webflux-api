@@ -7,10 +7,12 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springdoc.core.annotations.RouterOperation;
 import org.springdoc.core.annotations.RouterOperations;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -18,16 +20,15 @@ import org.springframework.web.reactive.config.EnableWebFlux;
 import org.springframework.web.reactive.config.WebFluxConfigurer;
 import org.springframework.web.reactive.function.server.*;
 import org.springframework.web.server.ServerWebInputException;
-import ru.avdeev.marketsimpleapi.dto.ProductCreateRequest;
-import ru.avdeev.marketsimpleapi.dto.ProductPageResponse;
+import ru.avdeev.marketsimpleapi.dto.*;
 import ru.avdeev.marketsimpleapi.entities.Product;
 import ru.avdeev.marketsimpleapi.exceptions.ApiException;
-import ru.avdeev.marketsimpleapi.dto.ErrorResponse;
+import ru.avdeev.marketsimpleapi.routers.handlers.AuthHandler;
 import ru.avdeev.marketsimpleapi.routers.handlers.HelloHandler;
 import ru.avdeev.marketsimpleapi.routers.handlers.ProductHandler;
-import ru.avdeev.marketsimpleapi.services.ProductService;
 
 import java.math.BigDecimal;
+
 import java.util.UUID;
 
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
@@ -40,10 +41,10 @@ public class Router implements WebFluxConfigurer {
     @RouterOperations ({
             @RouterOperation(path = "/api/v1/product",
                     produces = {MediaType.APPLICATION_JSON_VALUE},
-                    beanClass = ProductService.class,
+                    beanClass = ProductHandler.class,
                     method = RequestMethod.GET,
-                    beanMethod = "getPage",
-                    operation = @Operation(operationId = "getPage",
+                    beanMethod = "get",
+                    operation = @Operation(operationId = "get",
                             responses = {
                                     @ApiResponse(responseCode = "200",
                                             description = "successful operation",
@@ -61,7 +62,7 @@ public class Router implements WebFluxConfigurer {
             ),
             @RouterOperation(path = "/api/v1/product/{id}",
                     produces = {MediaType.APPLICATION_JSON_VALUE},
-                    beanClass = ProductService.class,
+                    beanClass = ProductHandler.class,
                     method = RequestMethod.GET,
                     beanMethod = "getById",
                     operation = @Operation(operationId = "getById",
@@ -78,7 +79,7 @@ public class Router implements WebFluxConfigurer {
             ),
             @RouterOperation(path = "/api/v1/product",
                     produces = {MediaType.APPLICATION_JSON_VALUE},
-                    beanClass = ProductService.class,
+                    beanClass = ProductHandler.class,
                     method = RequestMethod.POST,
                     beanMethod = "add",
                     operation = @Operation(operationId = "add",
@@ -92,15 +93,17 @@ public class Router implements WebFluxConfigurer {
                                             content = @Content(schema = @Schema(implementation = ErrorResponse.class))
                                     )
                             },
-                            requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = ProductCreateRequest.class)))
+                            requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = ProductCreateRequest.class))),
+                            security = @SecurityRequirement(name = "jwt")
                     )
             ),
             @RouterOperation(path = "/api/v1/product",
                     produces = {MediaType.APPLICATION_JSON_VALUE},
-                    beanClass = ProductService.class,
+                    beanClass = ProductHandler.class,
                     method = RequestMethod.PUT,
                     beanMethod = "update",
                     operation = @Operation(operationId = "update",
+                            security = @SecurityRequirement(name = "jwt"),
                             responses = {
                                     @ApiResponse(responseCode = "200",
                                             description = "successful operation",
@@ -120,13 +123,15 @@ public class Router implements WebFluxConfigurer {
             ),
             @RouterOperation(path = "/api/v1/product/{id}",
                     produces = {MediaType.APPLICATION_JSON_VALUE},
-                    beanClass = ProductService.class,
+                    beanClass = ProductHandler.class,
                     method = RequestMethod.DELETE,
                     beanMethod = "delete",
                     operation = @Operation(operationId = "delete",
+                            security = @SecurityRequirement(name = "jwt"),
                             responses = {
                                     @ApiResponse(responseCode = "200",
-                                            description = "successful operation"
+                                            description = "successful operation",
+                                            content = @Content(schema = @Schema())
                                     )
                             },
                             parameters = {
@@ -145,6 +150,7 @@ public class Router implements WebFluxConfigurer {
                         .POST("", handler::add)
                         .PUT("", handler::update)
                         .DELETE("/{id}", handler::delete)
+                        .POST("/{id}", handler::fileUpload)
                         .filter(apiExceptionHandler())
                 ).build();
     }
@@ -174,6 +180,41 @@ public class Router implements WebFluxConfigurer {
                 ).build();
     }
 
+    @Bean
+    @RouterOperations ({
+            @RouterOperation(path = "/api/v1/auth",
+                    produces = {MediaType.APPLICATION_JSON_VALUE},
+                    beanClass = AuthHandler.class,
+                    method = RequestMethod.POST,
+                    beanMethod = "auth",
+                    operation = @Operation(operationId = "auth",
+                            responses = {
+                                    @ApiResponse(responseCode = "200",
+                                            description = "successful operation",
+                                            content = @Content(schema = @Schema(implementation = AuthResponse.class))
+                                    ),
+                                    @ApiResponse(responseCode = "401",
+                                            description = "not authorized",
+                                            content = @Content(schema = @Schema())
+                                    )
+                            },
+                            requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = AuthRequest.class)))
+                    )
+            )
+    })
+    public RouterFunction<ServerResponse> authRouter(AuthHandler handler) {
+
+        return route()
+                .path("/api/v1/auth", b -> b
+                        .POST("", handler::auth)
+                ).build();
+    }
+
+    @Bean
+    public RouterFunction<ServerResponse> imgRouter() {
+        return RouterFunctions
+                .resources("/img/**", new ClassPathResource("img/"));
+    }
     private HandlerFilterFunction<ServerResponse, ServerResponse> apiExceptionHandler() {
 
         return (request, next) -> next.handle(request).log()

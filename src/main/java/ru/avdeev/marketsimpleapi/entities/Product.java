@@ -2,10 +2,12 @@ package ru.avdeev.marketsimpleapi.entities;
 
 import lombok.*;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -21,4 +23,7 @@ public class Product {
 
     @Column("price")
     private BigDecimal price;
+
+    @Transient
+    private List<FileEntity> files;
 }

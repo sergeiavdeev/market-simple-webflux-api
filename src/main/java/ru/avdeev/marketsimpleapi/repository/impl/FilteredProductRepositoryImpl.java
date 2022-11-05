@@ -35,7 +35,7 @@ public class FilteredProductRepositoryImpl implements FilteredProductRepository 
                         databaseClient.select(Product.class)
                                 .from("product")
                                 .matching(query).count())
-                .map(t -> new ProductPageResponse<>(t.getT1(), t.getT2(), page.getPageNumber()));
+                .map(t -> new ProductPageResponse<>(t.getT1(), t.getT2(), page.getPageNumber(), page.getPageSize()));
     }
 
     @Autowired

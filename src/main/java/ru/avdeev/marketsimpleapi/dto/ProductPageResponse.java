@@ -17,11 +17,11 @@ public class ProductPageResponse<T> {
     private Long totalElements;
     private List<T> content;
 
-    public ProductPageResponse(List<T> content, Long total, Integer pageNumber) {
+    public ProductPageResponse(List<T> content, Long total, Integer pageNumber, Integer pageSize) {
         this.content = content;
         this.totalElements = total;
-        this.number = pageNumber;
-        this.totalPages = (int)(total / content.size());
+        this.number = pageNumber + 1;
+        this.totalPages = pageSize == 0 ? 1 :  (int)Math.ceil((double)total / (double)pageSize);
         this.size = content.size();
     }
 }
