@@ -10,7 +10,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 import ru.avdeev.marketsimpleapi.dto.ProductCreateRequest;
 import ru.avdeev.marketsimpleapi.dto.ProductPageResponse;
 import ru.avdeev.marketsimpleapi.entities.FileEntity;
@@ -112,41 +111,34 @@ public class ProductService {
 
     public Mono<Void> productFileDelete(String id, String fileName) {
 
-        Path path = Paths.get(basePath).resolve(id).resolve(fileName);
-        return Mono.just(path)
-                .publishOn(Schedulers.boundedElastic())
-                .flatMap(file -> {
-                    new Thread(() -> {
-                        try {
-                            Files.delete(file);
-                        } catch (IOException e) {
-                            log.error("Can't delete file {}, error: {}", file, e.getMessage());
-                        }
-                    }).start();
-                    return Mono.empty();
-                });
+        Path file = Paths.get(basePath).resolve(id).resolve(fileName);
+        return Mono.fromRunnable(new Thread(() -> {
+            try {
+                Files.delete(file);
+            } catch (IOException e) {
+                log.error("Can't delete file {}, error: {}", file, e.getMessage());
+            }
+        })::start);
     }
 
     public Mono<Void> productFilesDelete(String id) {
 
         Path path = Paths.get(basePath).resolve(id);
-        return Mono.just(path)
-                .flatMap(directory -> {
-                    new Thread(() -> {
-                        try {
-                            File[] allContents = directory.toFile().listFiles();
-                            if (allContents != null) {
-                                for (File file : allContents) {
-                                    Files.delete(file.toPath());
-                                }
-                            }
-                            Files.delete(directory);
-                        } catch (IOException e) {
-                            log.error("Can't delete file or directory {}, error: {}", directory, e.getMessage());
-                        }
-                    }).start();
-                    return Mono.empty();
-                });
+        return Mono.fromRunnable(new Thread(() -> {
+            try {
+                File[] allContents = path.toFile().listFiles();
+                if (allContents != null) {
+                    for (File file : allContents) {
+                        Files.delete(file.toPath());
+                        log.info("File delete {}", file.toPath());
+                    }
+                }
+                Files.delete(path);
+                log.info("Directory delete {}", path);
+            } catch (IOException e) {
+                log.error("Can't delete file or directory {}, error: {}", path, e.getMessage());
+            }
+        })::start);
     }
 
 
