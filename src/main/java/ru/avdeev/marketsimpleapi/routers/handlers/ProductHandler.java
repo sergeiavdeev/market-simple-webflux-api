@@ -10,7 +10,6 @@ import reactor.core.publisher.Mono;
 import ru.avdeev.marketsimpleapi.dto.ProductCreateRequest;
 import ru.avdeev.marketsimpleapi.dto.ProductPageResponse;
 import ru.avdeev.marketsimpleapi.entities.Product;
-import ru.avdeev.marketsimpleapi.services.FileService;
 import ru.avdeev.marketsimpleapi.services.ProductService;
 
 import java.util.UUID;
@@ -20,7 +19,6 @@ import java.util.UUID;
 public class ProductHandler {
 
     ProductService productService;
-    FileService fileService;
     public Mono<ServerResponse> get(ServerRequest request) {
 
         return ServerResponse.ok()
@@ -65,15 +63,17 @@ public class ProductHandler {
 
         return request.multipartData()
                 .flatMap(parts ->
-                        productService.productFileSave((FilePart)parts.toSingleValueMap().get("file"), request.pathVariable("id")))
-                .then(ServerResponse.ok().build());
+                        productService.saveFile((FilePart)parts.toSingleValueMap().get("file"), request.pathVariable("id")))
+                .flatMap(fileEntity -> ServerResponse.ok().bodyValue(fileEntity));
     }
 
-
+    public Mono<ServerResponse> fileDelete(ServerRequest request) {
+        return ServerResponse.ok()
+                .body(productService.fileDelete(UUID.fromString(request.pathVariable("id"))), Void.class);
+    }
 
     @Autowired
-    public void init(ProductService ps, FileService fs) {
+    public void init(ProductService ps) {
         this.productService = ps;
-        this.fileService = fs;
     }
 }

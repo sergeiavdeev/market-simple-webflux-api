@@ -16,15 +16,10 @@ import ru.avdeev.marketsimpleapi.entities.FileEntity;
 import ru.avdeev.marketsimpleapi.entities.Product;
 import ru.avdeev.marketsimpleapi.exceptions.EntityNotFondException;
 import ru.avdeev.marketsimpleapi.mappers.ProductMapper;
+import ru.avdeev.marketsimpleapi.repository.FileCloudRepository;
 import ru.avdeev.marketsimpleapi.repository.FileRepository;
 import ru.avdeev.marketsimpleapi.repository.FilteredProductRepository;
 import ru.avdeev.marketsimpleapi.repository.ProductRepository;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
@@ -36,9 +31,9 @@ public class ProductService {
     ProductRepository repository;
     FileRepository fileRepository;
     FilteredProductRepository filteredRepository;
+
+    FileCloudRepository fileCloudRepository;
     ProductMapper mapper;
-    @Value("${img.product.path}")
-    private String basePath;
 
     @Value("${product.default-page-size}")
     private String defaultPageSize;
@@ -88,57 +83,30 @@ public class ProductService {
     public Mono<Void> delete(UUID id) {
         return repository.deleteById(id)
                 .then(fileRepository.deleteByOwnerId(id))
-                .then(productFilesDelete(id.toString()));
+                .then(fileCloudRepository.deleteFolder(id.toString()));
     }
 
-    public Mono<Void> productFileSave(FilePart part, String productId) {
+    public Mono<FileEntity> saveFile(FilePart part, String productId) {
 
-        Path filePath = Paths.get(basePath);
         String fileExtension = getFileExtension(part.filename());
         String newUUID = UUID.randomUUID().toString();
-        String fileName = String.format("%s %s.%s", productId, newUUID, fileExtension);
+        String fileName = String.format("%s.%s", newUUID, fileExtension);
         String dbFileName = String.format("%s.%s", newUUID, fileExtension);
 
-        return part.transferTo(
-                        filePath.resolve(fileName))
-                .then(fileRepository.save(new FileEntity(
+        return fileCloudRepository.save(productId, fileName, part)
+                .flatMap(success -> fileRepository.save(new FileEntity(
                         null,
                         UUID.fromString(productId),
                         dbFileName,
-                        0, "")))
-                .then();
+                        0, ""))
+                )
+                .onErrorResume(Mono::error);
     }
 
-    public Mono<Void> productFileDelete(String id, String fileName) {
-
-        Path file = Paths.get(basePath).resolve(id).resolve(fileName);
-        return Mono.fromRunnable(new Thread(() -> {
-            try {
-                Files.delete(file);
-            } catch (IOException e) {
-                log.error("Can't delete file {}, error: {}", file, e.getMessage());
-            }
-        })::start);
-    }
-
-    public Mono<Void> productFilesDelete(String id) {
-
-        Path path = Paths.get(basePath).resolve(id);
-        return Mono.fromRunnable(new Thread(() -> {
-            try {
-                File[] allContents = path.toFile().listFiles();
-                if (allContents != null) {
-                    for (File file : allContents) {
-                        Files.delete(file.toPath());
-                        log.info("File delete {}", file.toPath());
-                    }
-                }
-                Files.delete(path);
-                log.info("Directory delete {}", path);
-            } catch (IOException e) {
-                log.error("Can't delete file or directory {}, error: {}", path, e.getMessage());
-            }
-        })::start);
+    public Mono<Void> fileDelete(UUID id) {
+        return fileRepository.findById(id)
+                .flatMap(fileEntity -> fileRepository.deleteById(id)
+                        .then(fileCloudRepository.delete(fileEntity.getOwnerId().toString(), fileEntity.getName())));
     }
 
 
@@ -147,11 +115,13 @@ public class ProductService {
     public void init(ProductRepository repository,
                      FilteredProductRepository filteredRepository,
                      ProductMapper m,
-                     FileRepository fr) {
+                     FileRepository fr,
+                     FileCloudRepository fc) {
         this.repository = repository;
         this.filteredRepository = filteredRepository;
         mapper = m;
         fileRepository = fr;
+        fileCloudRepository = fc;
     }
 
     private Sort createSortFromString(String sortString) {

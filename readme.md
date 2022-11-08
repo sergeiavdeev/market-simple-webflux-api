@@ -4,3 +4,4 @@
 ### - Spring Security JWT auth
 ### - Mapstruct
 ### - Custom pageable query with criteria (R2dbcEntityTemplate)
+### - Swagger http://localhost:8080/market/swagger-doc/webjars/swagger-ui/index.html

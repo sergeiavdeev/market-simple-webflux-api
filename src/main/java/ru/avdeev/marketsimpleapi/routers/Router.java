@@ -3,8 +3,7 @@ package ru.avdeev.marketsimpleapi.routers;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.*;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -54,9 +53,10 @@ public class Router implements WebFluxConfigurer {
                             parameters = {
                                     @Parameter(in = ParameterIn.QUERY, name = "page", schema = @Schema(implementation = Integer.class)),
                                     @Parameter(in = ParameterIn.QUERY, name = "size", schema = @Schema(implementation = Integer.class)),
-                                    @Parameter(in = ParameterIn.QUERY, name = "title"),
+                                    @Parameter(in = ParameterIn.QUERY, name = "title", schema = @Schema(implementation = String.class)),
                                     @Parameter(in = ParameterIn.QUERY, name = "minPrice", schema = @Schema(implementation = BigDecimal.class)),
-                                    @Parameter(in = ParameterIn.QUERY, name = "maxPrice", schema = @Schema(implementation = BigDecimal.class))
+                                    @Parameter(in = ParameterIn.QUERY, name = "maxPrice", schema = @Schema(implementation = BigDecimal.class)),
+                                    @Parameter(in = ParameterIn.QUERY, name = "sort", schema = @Schema(implementation = String.class))
                             }
                     )
             ),
@@ -138,6 +138,27 @@ public class Router implements WebFluxConfigurer {
                                     @Parameter(in = ParameterIn.PATH, name = "id", schema = @Schema(implementation = UUID.class))
                             }
                     )
+            ),
+            @RouterOperation(path = "/api/v1/product/{id}",
+                    produces = MediaType.APPLICATION_JSON_VALUE,
+                    consumes = "multipart/form-data",
+                    beanClass = ProductHandler.class,
+                    method = RequestMethod.POST,
+                    beanMethod = "fileUpload",
+                    operation = @Operation(operationId = "fileUpload",
+                            //security = @SecurityRequirement(name = "jwt"),
+                            responses = {
+                                    @ApiResponse(responseCode = "200",
+                                            description = "successful operation",
+                                            content = @Content(schema = @Schema())
+                                    )
+                            },
+                            parameters = {
+                                    @Parameter(in = ParameterIn.PATH, name = "id", schema = @Schema(implementation = UUID.class))
+                            },
+                            requestBody = @RequestBody(content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
+                            schemaProperties = {@SchemaProperty(name = "file", schema = @Schema(type = "string", format = "binary"))}))
+                    )
             )
 
     })
@@ -151,6 +172,7 @@ public class Router implements WebFluxConfigurer {
                         .PUT("", handler::update)
                         .DELETE("/{id}", handler::delete)
                         .POST("/{id}", handler::fileUpload)
+                        .POST("/file/{id}", handler::fileDelete)
                         .filter(apiExceptionHandler())
                 ).build();
     }
