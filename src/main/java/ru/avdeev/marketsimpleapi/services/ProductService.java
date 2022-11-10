@@ -88,7 +88,7 @@ public class ProductService {
                 .then(fileCloudRepository.deleteFolder(id.toString()));
     }
 
-    public Mono<FileEntity> saveFile(FilePart part, String productId) {
+    public Mono<FileEntity> saveFile(FilePart part, String productId, Optional<Integer> order, Optional<String> descr) {
 
         String fileExtension = getFileExtension(part.filename());
         String newUUID = UUID.randomUUID().toString();
@@ -100,7 +100,7 @@ public class ProductService {
                         null,
                         UUID.fromString(productId),
                         dbFileName,
-                        0, ""))
+                        order.orElse(0), descr.orElse("")))
                 )
                 .onErrorResume(Mono::error);
     }

@@ -43,7 +43,7 @@ public class Router implements WebFluxConfigurer {
                     beanClass = ProductHandler.class,
                     method = RequestMethod.GET,
                     beanMethod = "get",
-                    operation = @Operation(operationId = "get",
+                    operation = @Operation(operationId = "get", description = "Get pageable product list",
                             responses = {
                                     @ApiResponse(responseCode = "200",
                                             description = "successful operation",
@@ -65,7 +65,7 @@ public class Router implements WebFluxConfigurer {
                     beanClass = ProductHandler.class,
                     method = RequestMethod.GET,
                     beanMethod = "getById",
-                    operation = @Operation(operationId = "getById",
+                    operation = @Operation(operationId = "getById",  description = "Get product by Id",
                             responses = {
                                     @ApiResponse(responseCode = "200",
                                             description = "successful operation",
@@ -82,7 +82,7 @@ public class Router implements WebFluxConfigurer {
                     beanClass = ProductHandler.class,
                     method = RequestMethod.POST,
                     beanMethod = "add",
-                    operation = @Operation(operationId = "add",
+                    operation = @Operation(operationId = "add", description = "Create new product",
                             responses = {
                                     @ApiResponse(responseCode = "200",
                                             description = "successful operation",
@@ -102,7 +102,7 @@ public class Router implements WebFluxConfigurer {
                     beanClass = ProductHandler.class,
                     method = RequestMethod.PUT,
                     beanMethod = "update",
-                    operation = @Operation(operationId = "update",
+                    operation = @Operation(operationId = "update",  description = "Update existing product",
                             security = @SecurityRequirement(name = "jwt"),
                             responses = {
                                     @ApiResponse(responseCode = "200",
@@ -126,7 +126,7 @@ public class Router implements WebFluxConfigurer {
                     beanClass = ProductHandler.class,
                     method = RequestMethod.DELETE,
                     beanMethod = "delete",
-                    operation = @Operation(operationId = "delete",
+                    operation = @Operation(operationId = "delete",  description = "Delete product",
                             security = @SecurityRequirement(name = "jwt"),
                             responses = {
                                     @ApiResponse(responseCode = "200",
@@ -145,7 +145,7 @@ public class Router implements WebFluxConfigurer {
                     beanClass = ProductHandler.class,
                     method = RequestMethod.POST,
                     beanMethod = "fileUpload",
-                    operation = @Operation(operationId = "fileUpload",
+                    operation = @Operation(operationId = "fileUpload",  description = "Upload file for existing product",
                             //security = @SecurityRequirement(name = "jwt"),
                             responses = {
                                     @ApiResponse(responseCode = "200",
@@ -157,7 +157,11 @@ public class Router implements WebFluxConfigurer {
                                     @Parameter(in = ParameterIn.PATH, name = "id", schema = @Schema(implementation = UUID.class))
                             },
                             requestBody = @RequestBody(content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
-                            schemaProperties = {@SchemaProperty(name = "file", schema = @Schema(type = "string", format = "binary"))}))
+                            schemaProperties = {
+                                    @SchemaProperty(name = "file", schema = @Schema(type = "string", format = "binary")),
+                                    @SchemaProperty(name = "order", schema = @Schema(type = "string", format = "string")),
+                                    @SchemaProperty(name = "descr", schema = @Schema(type = "string", format = "string"))
+                            }))
                     )
             )
 
