@@ -95,7 +95,7 @@ public class FileCloudRepositoryImpl implements FileCloudRepository {
                         return Mono.empty();
                     }
                     log.info("Delete directory failing: {}", folder);
-                    return Mono.error(new FileCloudException("Delete file failing: " + folder));
+                    return Mono.error(new FileCloudException("Delete directory failing: " + folder));
                 });
     }
 }

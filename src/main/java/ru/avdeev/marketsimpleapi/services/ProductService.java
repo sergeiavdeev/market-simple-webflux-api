@@ -3,7 +3,8 @@ package ru.avdeev.marketsimpleapi.services;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.relational.core.query.Criteria;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -21,6 +22,7 @@ import ru.avdeev.marketsimpleapi.repository.FileCloudRepository;
 import ru.avdeev.marketsimpleapi.repository.FileRepository;
 import ru.avdeev.marketsimpleapi.repository.FilteredProductRepository;
 import ru.avdeev.marketsimpleapi.repository.ProductRepository;
+
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
@@ -44,8 +46,8 @@ public class ProductService {
         int pageNum = Integer.parseInt(page.orElse("1"));
         int pageSize = Integer.parseInt(size.orElse(defaultPageSize));
 
-        if (pageNum < 1)pageNum = 1;
-        if (pageSize < 1)pageSize = 1;
+        if (pageNum < 1) pageNum = 1;
+        if (pageSize < 1) pageSize = 1;
 
         return filteredRepository.getPage(
                 PageRequest.of(pageNum - 1, pageSize, sort.isPresent() ? createSortFromString(sort.get()) : Sort.unsorted()),
@@ -155,8 +157,8 @@ public class ProductService {
 
     private String getFileExtension(String fileName) {
 
-        if(fileName.lastIndexOf(".") != -1 && fileName.lastIndexOf(".") != 0)
-            return fileName.substring(fileName.lastIndexOf(".")+1);
+        if (fileName.lastIndexOf(".") != -1 && fileName.lastIndexOf(".") != 0)
+            return fileName.substring(fileName.lastIndexOf(".") + 1);
         else return "";
     }
 }

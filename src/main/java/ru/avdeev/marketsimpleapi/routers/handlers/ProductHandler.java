@@ -21,6 +21,7 @@ import java.util.UUID;
 public class ProductHandler {
 
     ProductService productService;
+
     public Mono<ServerResponse> get(ServerRequest request) {
 
         return ServerResponse.ok()
@@ -57,8 +58,8 @@ public class ProductHandler {
 
     public Mono<ServerResponse> delete(ServerRequest request) {
 
-        return ServerResponse.ok()
-                .body(productService.delete(UUID.fromString(request.pathVariable("id"))), Void.class);
+        return productService.delete(UUID.fromString(request.pathVariable("id")))
+                .then(ServerResponse.ok().build());
     }
 
     public Mono<ServerResponse> fileUpload(ServerRequest request) {
@@ -67,7 +68,7 @@ public class ProductHandler {
                 .flatMap(parts -> {
                     FilePart file = (FilePart) parts.toSingleValueMap().get("file");
                     FormFieldPart order = (FormFieldPart) parts.toSingleValueMap().get("order");
-                    FormFieldPart descr = (FormFieldPart)parts.toSingleValueMap().get("descr");
+                    FormFieldPart descr = (FormFieldPart) parts.toSingleValueMap().get("descr");
                     return productService.saveFile(file, request.pathVariable("id"),
                             Optional.of(Integer.parseInt(order.value())), Optional.of(descr.value()));
                 })

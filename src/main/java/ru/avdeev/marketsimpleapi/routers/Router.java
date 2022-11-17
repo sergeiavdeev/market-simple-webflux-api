@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.reactive.config.EnableWebFlux;
 import org.springframework.web.reactive.config.WebFluxConfigurer;
@@ -139,7 +140,7 @@ public class Router implements WebFluxConfigurer {
                             }
                     )
             ),
-            @RouterOperation(path = "/api/v1/product/{id}",
+            @RouterOperation(path = "/api/v1/product/{id}/file",
                     produces = MediaType.APPLICATION_JSON_VALUE,
                     consumes = "multipart/form-data",
                     beanClass = ProductHandler.class,
@@ -175,7 +176,7 @@ public class Router implements WebFluxConfigurer {
                         .POST("", handler::add)
                         .PUT("", handler::update)
                         .DELETE("/{id}", handler::delete)
-                        .POST("/{id}", handler::fileUpload)
+                        .POST("/{id}/file", handler::fileUpload)
                         .POST("/file/{id}", handler::fileDelete)
                         .filter(apiExceptionHandler())
                 ).build();
@@ -237,10 +238,12 @@ public class Router implements WebFluxConfigurer {
     }
 
     @Bean
-    public RouterFunction<ServerResponse> imgRouter() {
+    public RouterFunction<ServerResponse> staticRouter() {
         return RouterFunctions
-                .resources("/img/**", new ClassPathResource("img/"));
+                .resources("/**", new ClassPathResource("static/"))
+                ;
     }
+
     private HandlerFilterFunction<ServerResponse, ServerResponse> apiExceptionHandler() {
 
         return (request, next) -> next.handle(request).log()
